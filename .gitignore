@@ -122,3 +122,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# VS Code folder
+/.vscode
+
+# Discord Bot Token
+token.txt
+
+# MongoDB Server Address
+server.txt
+
+# Python Virtual Env
+/bot-env
+
+# Mac OS
+.DS_Store
