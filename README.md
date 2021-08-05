@@ -7,7 +7,7 @@ Luigi Bot is a Discord bot made to add some games inside of Discord using Messag
 ## Features
 
 - Games for you and your server members to play
---Currently, there is an RPG Game that features questing and a level system
+    Currently, there is an RPG Game that features questing and a level system
 - MongoDB database for storing user content long term for if the bot must go offline
 
 ## Installation
@@ -17,18 +17,20 @@ If you'd like to add Luigi Bot to your server, [click here](https://discord.com/
 ## Permissions
 This bot needs a few permissions to run properly!
 - Make Slash Commands
--- All of the bot's commands are ran through these commands!
+    All of the bot's commands are ran through these commands!
 - Delete Messages
--- Used for some games to keep the chat clean, as well as any moderation commands that involve deleting messages
+    Used for some games to keep the chat clean, as well as any moderation commands that involve deleting messages
 
 ## Development
 
 Want to contribute? Here's how to get started!
 
 Step 1:
+
 Clone this repository to your machine (as you could have guessed ;p)
 
 Optional Step 1.5:
+
 If you would like to make a virtual environment for this instance as to keep these libraries seperate from your main Python installation, follow these steps in your favorite Terminal app.
 
 1. Go to the bot's folder
@@ -45,7 +47,8 @@ $ python3 -m venv luigi-bot-env
 $ source bot-env/bin/activate
 ```
 
-Step 2
+Step 2:
+
 Install the [Discord Python Library][DPL], [Messaage Components library][MCL], and [MongoDB Engine][MDGE]
 ```sh
 # Linux/macOS
@@ -59,20 +62,20 @@ py -3 -m pip install -U discord-py-slash-command
 py -3 -m pip install mongoengine
 ```
 
-Open your favorite Terminal and run these commands.
-
 ## License
 
 (Luigi Bot's License TBD)
 
 This software uses the Discord Python Library, Discord Py Message Compoonents Library, and MongoDB Engine; all of which are licensed under the MIT license. This project has not nor will not make any claims as to being the author of any of these pieces of software.
 
+[Discord Python License][DPLL]
+
+[Discord Py Message Compoonents Library][MCLL]
+
+[MongoDB Engine License][MDGEL]
+
 ## Copyright Notice
 This project is not affiliated with Nintendo and does not claim to own "Luigi" or any other Nintendo Property. 
-
-[Discord Python License][DPLL]
-[Discord Py Message Compoonents Library][MCLL]
-[MongoDB Engine License][MDGEL]
 
 [DPL]: <https://github.com/Rapptz/discord.py>
 [DPLL]: <https://github.com/Rapptz/discord.py/blob/master/LICENSE>
