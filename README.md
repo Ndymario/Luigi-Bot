@@ -44,7 +44,7 @@ $ python3 -m venv luigi-bot-env
 
 3. Activate the Virtual Environment
 ```sh
-$ source bot-env/bin/activate
+$ source luigi-bot-env/bin/activate
 ```
 
 Step 2:
