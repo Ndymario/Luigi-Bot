@@ -64,7 +64,16 @@ py -3 -m pip install mongoengine
 
 Step 3:
 
-Follow [this tutorial](https://docs.mongodb.com/manual/tutorial/getting-started/) to set up a local MongoDB database for connecting Luigi Bot to.
+Follow [this tutorial](https://docs.mongodb.com/manual/installation/) to set up a local MongoDB database for connecting Luigi Bot to.
+
+Step 4:
+
+Add a file named "server.txt" in the root directory and add the text "localhost" inside of said txt file.
+
+Step 5:
+
+Add a file named "token.txt" to your own Application Bot Token.
+
 ## License
 
 (Luigi Bot's License TBD)
