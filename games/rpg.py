@@ -111,9 +111,124 @@ class Player:
         self._defeated = defeated
     
 class Enemy:
-    # TODO Make enemy class
+    # The default enemy stats
     def __init__(self):
-        return
+        self._name = ""
+        self._avatar = ""
+        self._id = 0
+        self._level = 1
+        self._exp = 0
+        self._hp = 0
+        self._max_hp = 0
+        self._sp = 0
+        self._max_sp = 0
+        self._power = 0
+        self._shield = 0
+        self._spd = 0
+        self._lk = 0
+        self._loot = []
+        self._moves = []
+        self._defeated = False
+
+    # Accessors
+    def get_name(self):
+        return self._name
+
+    def get_avatar(self):
+        return self._avatar
+
+    def get_id(self):
+        return self._id
+
+    def get_level(self):
+        return self._level
+    
+    def get_exp(self):
+        return self._exp
+
+    def get_hp(self):
+        return self._hp
+
+    def get_max_hp(self):
+        return self._max_hp
+    
+    def get_sp(self):
+        return self._sp
+
+    def get_max_sp(self):
+        return self._max_sp
+
+    def get_power(self):
+        return self._power
+
+    def get_shield(self):
+        return self._shield
+
+    def get_spd(self):
+        return self._spd
+
+    def get_lk(self):
+        return self._lk
+
+    def get_loot(self):
+        return self._loot
+
+    def get_moves(self):
+        return self._moves
+
+    def get_defeated(self):
+        return self._defeated
+
+    # Mutators
+    def set_name(self, name):
+        self._name = name
+
+    def set_avatar(self, avatar):
+        self._avatar = avatar
+
+    def set_id(self, id):
+        self._id = id
+
+    def set_level(self, level):
+        self._level = level
+    
+    def set_exp(self, exp):
+        self._exp = exp
+
+    def set_hp(self, hp):
+        self._hp = hp
+    
+    def set_sp(self, sp):
+        self._sp = sp
+
+    def set_power(self, power):
+        self._power = power
+
+    def set_shield(self, shield):
+        self._shield = shield
+
+    def set_spd(self, spd):
+        self._spd = spd
+
+    def set_lk(self, lk):
+        self._lk = lk
+
+    def set_loot(self, loot):
+        self._loot = loot
+
+    def set_moves(self, moves):
+        self._moves = moves
+
+    def set_defeated(self, defeated):
+        self._defeated = defeated
+
+    # Function that loads the stats of the passed enemy file
+    def load_enemy(self, enemy_file):
+        pass
+
+    # Funcion that selects moves this enemy will have based off the move pool
+    def get_moves(self, move_pool):
+        pass
 
 class Battle():
     def __init__(self):

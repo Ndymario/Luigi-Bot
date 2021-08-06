@@ -1,0 +1,26 @@
+{
+    "name": "Goblin",
+    "avatar": "https://static.wikia.nocookie.net/clashroyale/images/b/bd/GoblinsCard.png/revision/latest/scale-to-width-down/554?cb=20171212204756",
+    "level_min": 1,
+    "level_max": 10,
+    "exp_min": 10,
+    "exp_max": 30,
+    "hp_min": 1,
+    "hp_max": 10,
+    "sp_min": 0,
+    "sp_max": 5,
+    "power_min": 1,
+    "power_max": 10,
+    "shield_min": 1,
+    "shield_max": 5,
+    "speed_min": 1,
+    "speed_max": 5,
+    "lk_min": 1,
+    "lk_max": 3,
+    "loot": {
+        "common": "Goblin Tooth",
+        "rare": "Goblin's Gold",
+        "secret": "Goblin's Knife"
+    },
+    "move_pool": "goblin_pool"
+}
