@@ -4,7 +4,7 @@
 
 from math import ceil
 import random
-
+import json
 class Player:
     # The default player stats
     def __init__(self):
@@ -224,12 +224,65 @@ class Enemy:
 
     # Function that loads the stats of the passed enemy file
     def load_enemy(self, enemy_file):
-        pass
+        # Open the passed enemy JSON file
+        file = open(enemy_file, "r")
+
+        # Convert the JSON to a Python Dict
+        enemy_json = json.load(file)
+
+        # Use some RNG and pick the stats
+        self.set_name(enemy_json["name"])
+        self.set_avatar(enemy_json["avatar"])
+        self.set_level(random.randint(enemy_json["level_min"], enemy_json["level_max"]))
+        self.set_exp(random.randint(enemy_json["exp_min"], enemy_json["exp_max"]))
+        self.set_hp(random.randint(enemy_json["hp_min"], enemy_json["hp_max"]))
+        self.set_sp(random.randint(enemy_json["sp_min"], enemy_json["sp_max"]))
+        self.set_power(random.randint(enemy_json["power_min"], enemy_json["power_max"]))
+        self.set_shield(random.randint(enemy_json["shield_min"], enemy_json["shield_max"]))
+        self.set_spd(random.randint(enemy_json["speed_min"], enemy_json["speed_max"]))
+        self.set_lk(random.randint(enemy_json["lk_min"], enemy_json["lk_max"]))
+
+        # Use some RNG to determine the loot for this enemy
+        chance = 80
+        common = random.randint(70, 100)
+        rare = random.randint(50, 100)
+        secret = random.randint(0, 80)
+        loot_pool = []
+
+        if(common >= chance):
+            loot_pool.append(enemy_json["loot"]["common"])
+        
+        if(rare >= chance):
+            loot_pool.append(enemy_json["loot"]["rare"])
+        
+        if(secret >= chance):
+            loot_pool.append(enemy_json["loot"]["secret"])
+
+        self.set_loot(loot_pool)
+    
+        # Close the file when done
+        file.close()
 
     # Funcion that selects moves this enemy will have based off the move pool
-    def get_moves(self, move_pool):
-        pass
+    def get_moves(self, enemy_type):
+        # Open the move pool JSON file
+        file = open("games/rpg_files/enemy_files/move_pools.json", "r")
 
+        # Convert the JSON to a Python Dict
+        move_json = json.load(file)
+
+        # Get move pool passed
+        move_pool = move_json[enemy_type]
+
+        moves_to_assign = []
+
+        # Use some RNG to assign moves to this enemy
+        for move in move_pool:
+            if (random.randint(move["weight", 100])):
+                moves_to_assign.append(move)
+
+        # Close the file when done
+        file.close()
 class Battle():
     def __init__(self):
         # Make a list of every entity in the battle
@@ -360,5 +413,3 @@ def battle_generator(*player_info, enemy_info, is_quest):
         battle.assign_entities(new_player)
 
     return battle
-
-    
