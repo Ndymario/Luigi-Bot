@@ -62,6 +62,9 @@ py -3 -m pip install -U discord-py-slash-command
 py -3 -m pip install mongoengine
 ```
 
+Step 3:
+
+Follow [this tutorial](https://docs.mongodb.com/manual/tutorial/getting-started/) to set up a local MongoDB database for connecting Luigi Bot to.
 ## License
 
 (Luigi Bot's License TBD)
