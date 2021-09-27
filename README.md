@@ -31,7 +31,7 @@ Clone this repository to your machine (as you could have guessed ;p)
 
 Optional Step 1.5:
 
-If you would like to make a virtual environment for this instance as to keep these libraries seperate from your main Python installation, follow these steps in your favorite Terminal app.
+If you would like to make a virtual environment for this instance as to keep these libraries separate from your main Python installation, follow these steps in your favorite Terminal app.
 
 1. Go to the bot's folder
 ```sh
@@ -49,15 +49,15 @@ $ source luigi-bot-env/bin/activate
 
 Step 2:
 
-Install the [Discord Python Library][DPL], [Messaage Components library][MCL], and [MongoDB Engine][MDGE]
+Install the [Discord Python Library][DPL], [Message Components library][MCL], and [MongoDB Engine][MDGE]
 ```sh
 # Linux/macOS
-python3 -m pip install -U discord.py
+python3 -m pip install -U "py-cord[voice]"
 python3 -m pip install -U discord-py-slash-command
 python3 -m pip install mongoengine
 
 # Windows
-py -3 -m pip install -U discord.py
+py -3 -m pip install -U py-cord[voice]
 py -3 -m pip install -U discord-py-slash-command
 py -3 -m pip install mongoengine
 ```
@@ -78,19 +78,19 @@ Add a file named "token.txt" to your own Application Bot Token.
 
 (Luigi Bot's License TBD)
 
-This software uses the Discord Python Library, Discord Py Message Compoonents Library, and MongoDB Engine; all of which are licensed under the MIT license. This project has not nor will not make any claims as to being the author of any of these pieces of software.
+This software uses a Discord Python Library, Discord Py Message Components Library, and MongoDB Engine; all of which are licensed under the MIT license. This project has not nor will not make any claims as to being the author of any of these pieces of software.
 
 [Discord Python License][DPLL]
 
-[Discord Py Message Compoonents Library][MCLL]
+[Discord Py Message Components Library][MCLL]
 
 [MongoDB Engine License][MDGEL]
 
 ## Copyright Notice
-This project is not affiliated with Nintendo and does not claim to own "Luigi" or any other Nintendo Property. 
+This project is not affiliated with Nintendo and does not claim to own "Luigi" or any other Nintendo Property.
 
-[DPL]: <https://github.com/Rapptz/discord.py>
-[DPLL]: <https://github.com/Rapptz/discord.py/blob/master/LICENSE>
+[DPL]: <https://github.com/Pycord-Development/pycord>
+[DPLL]: <https://github.com/Pycord-Development/pycord/blob/master/LICENSE>
 [MCL]: <https://github.com/discord-py-slash-commands/discord-py-interactions>
 [MCLL]: <https://github.com/discord-py-slash-commands/discord-py-interactions/blob/master/LICENSE>
 [MDGE]: <http://mongoengine.org>
