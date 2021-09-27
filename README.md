@@ -31,7 +31,7 @@ Clone this repository to your machine (as you could have guessed ;p)
 
 Optional Step 1.5:
 
-If you would like to make a virtual environment for this instance as to keep these libraries seperate from your main Python installation, follow these steps in your favorite Terminal app.
+If you would like to make a virtual environment for this instance as to keep these libraries separate from your main Python installation, follow these steps in your favorite Terminal app.
 
 1. Go to the bot's folder
 ```sh
@@ -82,7 +82,7 @@ This software uses a Discord Python Library, Discord Py Message Components Libra
 
 [Discord Python License][DPLL]
 
-[Discord Py Message Compoonents Library][MCLL]
+[Discord Py Message Components Library][MCLL]
 
 [MongoDB Engine License][MDGEL]
 
