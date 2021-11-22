@@ -49,17 +49,13 @@ $ source luigi-bot-env/bin/activate
 
 Step 2:
 
-Install the [Discord Python Library][DPL], [Message Components library][MCL], and [MongoDB Engine][MDGE]
+Install the dependancies
 ```sh
 # Linux/macOS
-python3 -m pip install -U "py-cord[voice]"
-python3 -m pip install -U discord-py-slash-command
-python3 -m pip install mongoengine
+python3 -m pip install -r requirements.txt
 
 # Windows
-py -3 -m pip install -U py-cord[voice]
-py -3 -m pip install -U discord-py-slash-command
-py -3 -m pip install mongoengine
+py -3 -m pip install -r requirements.txt
 ```
 
 Step 3:
