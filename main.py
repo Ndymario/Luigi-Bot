@@ -8,6 +8,7 @@ import mongo_db.mongo_db as mongo_db
 import bot_commands.char as ch
 import bot_commands.quest as quest
 import bot_commands.general_commands as general
+import bot_commands.music as music
 from discord_slash import SlashCommand
 
 # Since we're good and safe coders, we will read our token from an external file
@@ -16,12 +17,13 @@ token = token_file.read()
 
 client = commands.Bot(command_prefix='$', intents=discord.Intents.all())
 slash = SlashCommand(client, sync_commands=True)
-guild_ids = [634581944025219091, 787615718090080286, 692071084014567534]
+guild_ids = [634581944025219091, 787615718090080286, 692071084014567534, 911507071558623302]
 
 # Set up slash commands from other files
 ch.define_slash(guild_ids, slash)
 quest.define_slash(guild_ids, slash)
 general.define_slash(guild_ids, slash)
+music.define_slash(guild_ids, slash, client)
 
 # Connect to our MongoDB
 mongo_db.db_connect()
