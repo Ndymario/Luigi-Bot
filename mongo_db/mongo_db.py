@@ -11,7 +11,7 @@ server_file = open("server.txt", "r")
 server = server_file.read()
 
 def db_connect():
-    connect(db="tutorial", host=server, port=27017)
+    connect(db="luigibot", host=server, port=27017)
 
 class Character(Document):
     discord_name = StringField(required=True, max_length=20)
