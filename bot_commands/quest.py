@@ -96,7 +96,7 @@ def char_list_generator(user):
     result = get_chars(user)
 
     options = []
-    
+
     for character in result[1]:
         options.append(create_select_option(character.name, value=f"{character.name}.{character.id}"))
 

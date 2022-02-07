@@ -17,7 +17,7 @@ token = token_file.read()
 
 client = commands.Bot(command_prefix='$', intents=discord.Intents.all())
 slash = SlashCommand(client, sync_commands=True)
-guild_ids = [634581944025219091, 787615718090080286, 692071084014567534, 911507071558623302]
+guild_ids = [634581944025219091, 787615718090080286, 692071084014567534, 911507071558623302, 915655039463333899]
 
 # Set up slash commands from other files
 ch.define_slash(guild_ids, slash)
