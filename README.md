@@ -44,7 +44,14 @@ $ python3 -m venv luigi-bot-env
 
 3. Activate the Virtual Environment
 ```sh
-$ source luigi-bot-env/bin/activate
+# Linux/macOS
+source luigi-bot-env/bin/activate
+
+# Windows (PowerShell)
+.\luigi-bot-env\Scripts\activate.ps1
+
+# Windows (CMD)
+.\luigi-bot-env\Scripts\activate.bat
 ```
 
 Step 2:
