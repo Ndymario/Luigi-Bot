@@ -9,14 +9,12 @@ import bot_commands.char as ch
 import bot_commands.quest as quest
 import bot_commands.general_commands as general
 import bot_commands.music as music
-from discord_slash import SlashCommand
 
 # Since we're good and safe coders, we will read our token from an external file
 token_file = open("token.txt", "r")
 token = token_file.read()
 
 client = commands.Bot(command_prefix='$', intents=discord.Intents.all())
-slash = SlashCommand(client, sync_commands=True)
 guild_ids = [634581944025219091, 787615718090080286, 692071084014567534, 911507071558623302, 915655039463333899]
 
 # Set up slash commands from other files
