@@ -31,6 +31,7 @@ mongo_db.db_connect()
 async def on_ready():
     print("Ready!")
 
+'''
 @client.event
 async def on_message(ctx):
     # This try-except block is used for when a user is creating a character.
@@ -51,5 +52,6 @@ async def on_message(ctx):
     # Catch the exception if a person who is not making a character sends a message
     except(KeyError):
         return
+'''
 
 client.run(token)

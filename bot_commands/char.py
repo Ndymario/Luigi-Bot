@@ -1,90 +1,45 @@
 import discord
-from discord_slash.utils.manage_components import create_select, create_select_option, create_button, create_actionrow, wait_for_component
-from discord_slash.model import ButtonStyle
-from discord_slash.utils.manage_commands import create_option
+
 from mongo_db.mongo_db import create_character, get_chars, get_total_char
 
-# List of buttons to create an action row for
-create_confirm_buttons = [
-            create_button(
-                style=ButtonStyle.green,
-                label="Let's go!",
-                custom_id="create_confirm"
-            ),
-            create_button(
-                style=ButtonStyle.red,
-                label="Actually, never mind.",
-                custom_id="create_cancel"
-            )
-          ]
-# Create an action row for the buttons
-create_confirm_row = create_actionrow(*create_confirm_buttons)
+# Buttons that relate to the character creation commands
 
-# Buttons to select for a new character
-character_create_selections = [
-            create_button(
-                style=ButtonStyle.gray,
-                label="Name",
-                custom_id="char_name"
-            ),
-            create_button(
-                style=ButtonStyle.gray,
-                label="Avatar",
-                custom_id="char_avatar"
-            ),
-            create_button(
-                style=ButtonStyle.gray,
-                label="Stored Stats",
-                custom_id="char_stored"
-            )
-          ]
+# Create confirmation
+confirm_button = discord.ui.Button(style=discord.ButtonStyle.green, label="Let's go!", custom_id="create_confirm")
+cancel_button = discord.ui.Button(style=discord.ButtonStyle.red, label="Actually, never mind.", custom_id="create_cancel")
+confirmation_buttons = [confirm_button, cancel_button]
 
-# Action row for the buttons
-create_selection_row = create_actionrow(*character_create_selections)
+# Create menu
+name_button = discord.ui.Button(style=discord.ButtonStyle.gray, label="Name", custom_id="char_name")
+avatar_button = discord.ui.Button(style=discord.ButtonStyle.gray, label="Avatar", custom_id="char_avatar")
+stored_button = discord.ui.Button(style=discord.ButtonStyle.gray, label="Stored Stats", custom_id="char_stored")
+create_buttons = [name_button, avatar_button, stored_button]
 
-# Buttons to confirm the creation of a new character
-character_create_confirmation = [
-            create_button(
-                style=ButtonStyle.green,
-                label="Submit Character",
-                custom_id="char_confirm"
-            ),
-            create_button(
-                style=ButtonStyle.red,
-                label="Actually, nevermind",
-                custom_id="char_giveup"
-            )
-          ]
+# Final confirm
+char_confirm_button = discord.ui.Button(style=discord.ButtonStyle.green, label="Submit Character", custom_id="char_confirm")
+char_stop_button = discord.ui.Button(style=discord.ButtonStyle.red, label="Actually, nevermind", custom_id="char_giveup")
+final_buttons = [char_confirm_button, char_stop_button]
 
-create_confirmation_row = create_actionrow(*character_create_confirmation)
+# Button to return after seeing your stats
+char_return = discord.ui.Button(style=discord.ButtonStyle.gray, label="Sweet, take me back", custom_id="char_return")
 
-character_stat_select = create_select(
-    options=[
-        create_select_option("HP", value="hp", description="How many hits you can take before you fall (+5)"),
-        create_select_option("SP", value="sp", description="Points used for performing special attacks (+5)"),
-        create_select_option("Power", value="power", description="How much damage you deal (+2)"),
-        create_select_option("Shield", value="shield", description="How damage resistant you are (+2)"),
-        create_select_option("SPD", value="spd", description="How fast you are (determines turn order) (+2)"),
-        create_select_option("LK", value="lk", description="How lucky you are (+1)"),
-    ],
-    placeholder="Select a starting stat bonus.",
-    min_values=1,
-    max_values=1,
-    custom_id="stat_select"
-)
+# Action rows for the buttons
+create_confirm_row = discord.ActionRow(confirmation_buttons)
+create_selection_row = discord.ActionRow(create_buttons)
+char_confirmation_row = discord.ActionRow(final_buttons)
+char_return_row = discord.ActionRow(char_return)
 
-create_stat_select = create_actionrow(character_stat_select)
+# Stat options
+hp_option = discord.SelectOption(label="HP", value="hp", description="How many hits you can take before you fall (+5)")
+sp_option = discord.SelectOption(label="SP", value="sp", description="Points used for performing special attacks (+5)")
+pow_option = discord.SelectOption(label="Power", value="power", description="How much damage you deal (+2)")
+def_option = discord.SelectOption(label="Shield", value="shield", description="How damage resistant you are (+2)")
+spd_option = discord.SelectOption(label="Speed", value="spd", description="How fast you are (determines turn order) (+2)")
+lk_option = discord.SelectOption(label="Luck", value="lk", description="How lucky you are (+1)")
+stat_list = [hp_option, sp_option, pow_option, def_option, spd_option, lk_option]
 
-# Buttons to confirm the creation of a new character
-character_stored_return = [
-            create_button(
-                style=ButtonStyle.grey,
-                label="Sweet, take me back",
-                custom_id="char_return"
-            )
-          ]
-
-create_return_row = create_actionrow(*character_stored_return)
+# Select menu for bonus stats
+stat_select = discord.ui.Select(custom_id="stat_select", min_values=1, max_values=1, placeholder="Select a starting stat bonus.", options=stat_list)
 
 class NewChar():
     char_name_wait = False
