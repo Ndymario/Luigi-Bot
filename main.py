@@ -6,30 +6,28 @@ import discord
 from discord.ext import commands
 import mongo_db.mongo_db as mongo_db
 import bot_commands.char as ch
-import bot_commands.quest as quest
-import bot_commands.general_commands as general
-import bot_commands.music as music
+#import bot_commands.quest as quest
+#import bot_commands.general_commands as general
+#import bot_commands.music as music
 
 # Since we're good and safe coders, we will read our token from an external file
 token_file = open("token.txt", "r")
 token = token_file.read()
 
-client = commands.Bot(command_prefix='$', intents=discord.Intents.all())
+bot = commands.Bot(command_prefix='$')
 guild_ids = [634581944025219091, 787615718090080286, 692071084014567534, 911507071558623302, 915655039463333899]
 
 # Set up slash commands from other files
-ch.define_slash(guild_ids, slash)
-quest.define_slash(guild_ids, slash)
-general.define_slash(guild_ids, slash)
-music.define_slash(guild_ids, slash, client)
+ch.define_slash(guild_ids, bot)
 
 # Connect to our MongoDB
 mongo_db.db_connect()
 
 # When the bot is ready, say so in the console
-@client.event
+@bot.event
 async def on_ready():
     print("Ready!")
+
 
 '''
 @client.event
@@ -54,4 +52,4 @@ async def on_message(ctx):
         return
 '''
 
-client.run(token)
+bot.run(token)
