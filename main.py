@@ -5,9 +5,9 @@
 from discord.ext import commands
 import mongo_db.mongo_db as mongo_db
 import bot_commands.char as ch
-#import bot_commands.quest as quest
+import bot_commands.quest as quest
 import bot_commands.general_commands as general
-#import bot_commands.music as music
+import bot_commands.music as music
 
 # Since we're good and safe coders, we will read our token from an external file
 token_file = open("token.txt", "r")
@@ -19,6 +19,12 @@ guild_ids = [334848602130219009, 427651547208482816, 787615718090080286, 3994244
 # Set up slash commands from other files
 ch.define_slash(guild_ids, bot)
 general.define_slash(guild_ids, bot)
+
+# Until the music re-write happens, the music commands are offline!
+# music.define_slash(guild_ids, bot)
+
+# Likewise, until the RPG engine is implemented, the quest commands are offline!
+# quest.define_slash(guild_ids, bot)
 
 # Connect to our MongoDB
 mongo_db.db_connect()

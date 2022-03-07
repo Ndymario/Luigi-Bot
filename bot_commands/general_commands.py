@@ -1,4 +1,3 @@
-from turtle import update
 import discord
 from discord.ui import View, Button
 
