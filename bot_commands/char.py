@@ -4,7 +4,7 @@ from mongo_db.mongo_db import create_character, get_chars, get_total_char
 
 class CharNameModal(discord.ui.Modal):
     def __init__(self) -> None:
-        super().__init__("Name your character!")
+        super().__init__("Name your character")
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, custom_id="char_name", min_length=2, label="Type the name of your character here!"))
 
     async def callback(self, interaction):
@@ -14,7 +14,7 @@ class CharNameModal(discord.ui.Modal):
 
 class CharURLModal(discord.ui.Modal):
     def __init__(self) -> None:
-        super().__init__("Name your character!")
+        super().__init__("Give your character a face")
         self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, custom_id="char_avatar", min_length=2, label="Paste a link to your character's avatar here!"))
 
     async def callback(self, interaction):
@@ -126,7 +126,7 @@ def define_slash(guild_ids, bot):
         result = get_chars(ctx.user.name)
         for character in result[1]:
             character_list_embed.add_field(name=character.name, value=f"Level: {character.level}\nEXP: {character.exp}\nHP: {character.hp}/{character.max_hp}\nSP: {character.sp}/{character.max_sp}\nPower: {character.power}\nShield: {character.shield}\nSpeed: {character.spd}\nLuck: {character.lk}", inline=True)
-        await ctx.send(embed=character_list_embed, hidden=True)
+        await ctx.respond(embed=character_list_embed)
 
 # Create a function that checks if the requested character is valid
 def character_check(interaction):
