@@ -137,3 +137,12 @@ server.txt
 
 # Mac OS
 .DS_Store
+redirect_uri.txt
+
+secret_dash.txt
+
+client_id.txt
+
+client_secret.txt
+
+secret.txt
