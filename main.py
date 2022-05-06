@@ -1,5 +1,6 @@
 from quart import Quart, render_template, request, session, redirect, url_for
 from quart_discord import DiscordOAuth2Session
+import asyncio
 from pycord.ext import ipc
 
 secret_file = open("secret_dash.txt", "r")
@@ -78,4 +79,5 @@ async def dashboard_server(guild_id):
 
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	loop = asyncio.get_event_loop()
+	loop.run_until_complete(app.run(debug=True))
