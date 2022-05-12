@@ -1,172 +1,317 @@
 import discord
-from discord.ui import View, Button
+from discord import app_commands
+from discord import ui
+import copy
 
-class PollButton(discord.ui.Button):
-    def __init__(self, label, emoji=None):
-        super().__init__(label=label, style=discord.ButtonStyle.gray, emoji=emoji)
-
-    def update_votes(self):
-        vote_list = []
-        votes = self.view.reaction_log.values()
+# Define the poll buttons
+class PollButton(ui.Button):
+    def __init__(self, label):
+        super().__init__(label=label, style=discord.ButtonStyle.gray)
         
-        for option in self.view.children:
-            if option.custom_id == "end":
-                continue
-            label = option.label
-            count = sum(label in vote for vote in votes)
-            vote_list.append(f"{label}: {count}")
-
-        content = "\n".join(vote_list)
-
-        return content
-
     async def callback(self, interaction):
-        # If multiple votes are allowed and recasting is allowed, then "toggle" a person's vote
-        if ((self.view.multi == True) and (self.view.recast == True)):
-            if ((interaction.user.id in self.view.reaction_log.keys()) and (self.label in self.view.reaction_log[interaction.user.id])):
-                self.view.reaction_log[interaction.user.id].remove(self.label)
-                await interaction.response.edit_message(content=self.update_votes(), embeds=interaction.message.embeds)
-                await interaction.followup.send(content=f"You have removed your vote for `{self.label}`", ephemeral=True)
-            elif ((interaction.user.id in self.view.reaction_log.keys()) and not (self.label in self.view.reaction_log[interaction.user.id])):
-                self.view.reaction_log[interaction.user.id].append(self.label)
-                await interaction.response.edit_message(content=self.update_votes(), embeds=interaction.message.embeds)
-                await interaction.followup.send(content=f"You have casted your vote for `{self.label}`", ephemeral=True)
-            else:
-                self.view.reaction_log.update({interaction.user.id: [self.label]})
-                await interaction.response.edit_message(content=self.update_votes(), embeds=interaction.message.embeds)
-                await interaction.followup.send(content=f"You have casted your vote for `{self.label}`", ephemeral=True)
+        index = self.view.options.index(self.label)
+        self.view.embed.remove_field(index)
         
-        # If multiple votes are allowed, but recasting is not allowed, then lock in the person's vote
-        elif ((self.view.multi == True) and (self.view.recast == False)):
-            if interaction.user.id in self.view.reaction_log.keys():
-                if self.label not in self.view.reaction_log[interaction.user.id]:
-                    self.view.reaction_log[interaction.user.id].append(self.label)
-                    await interaction.response.edit_message(content=self.update_votes(), embeds=interaction.message.embeds)
-                    await interaction.followup.send(content=f"You have casted your vote for `{self.label}`", ephemeral=True)
+        # Add the user to the list of voters and what they voted for. If this is their first vote, add the user to the dict.
+        if interaction.user in self.view.user_votes:
+            # If casting multiple votes is disabled...
+            if (self.view.multi == False):
+                # If the user clicks an option they have already pressed before....
+                if self.label in self.view.user_votes[interaction.user]:
+                    if self.view.recast == False:
+                        await interaction.response.send_message(ephemeral=True, embed=discord.Embed(title="You already voted!", description="Recasting your vote is disabled!", color=0xff2600))
+                        return
+                    
+                    else:
+                        self.view.user_votes[interaction.user].remove(self.label)
+                        if self.label in self.view.votes:
+                            if (self.view.votes[self.label] - 1) < 0:
+                                self.view.votes[self.label] == 0
+                            else:
+                                self.view.votes[self.label] -= 1
+                        else:
+                            self.view.votes.update({self.label: 0})
+                                
                 else:
-                    await interaction.response.send_message(content=f"You have already voted for {self.label}! (Removing your vote was not allowed)", ephemeral=True)
-            else:
-                self.view.reaction_log.update({interaction.user.id: [self.label]})
-                await interaction.response.edit_message(content=self.update_votes(), embeds=interaction.message.embeds)
-                await interaction.followup.send(content=f"You have casted your vote for `{self.label}`", ephemeral=True)
-
-        # If multiple votes are not allowed, but recasting is allowed then just prevent a user from casting more than one vote
-        elif ((self.view.multi == False) and (self.view.recast == True)):
-            if ((interaction.user.id in self.view.reaction_log.keys())):
-                old = self.view.reaction_log[interaction.user.id]
-                self.view.reaction_log.pop(interaction.user.id)
-                await interaction.response.edit_message(content=self.update_votes(), embeds=interaction.message.embeds)
-                await interaction.followup.send(content=f"You have removed your vote for `{old}`", ephemeral=True)
-            else:
-                self.view.reaction_log.update({interaction.user.id: [self.label]})
-                await interaction.response.edit_message(content=self.update_votes(), embeds=interaction.message.embeds)
-                await interaction.followup.send(content=f"You have casted your vote for `{self.label}`", ephemeral=True)
-
-        # If multiple votes are not allowed and recasting is not allowed, then lock in the first vote as the final vote
-        elif ((self.view.multi == False) and (self.view.recast == False)):
-            if ((interaction.user.id in self.view.reaction_log.keys())):
-                await interaction.response.send_message(content=f"You have already voted in this poll! (You have previously voted `{self.view.reaction_log[interaction.user.id]}`)", ephemeral=True)
-            else:
-                self.view.reaction_log.update({interaction.user.id: [self.label]})
-                await interaction.response.edit_message(content=self.update_votes(), embeds=interaction.message.embeds)
-                await interaction.followup.send(content=f"You have casted your vote for `{self.label}`", ephemeral=True)
-
+                    self.view.user_votes.update({interaction.user: [self.label]})
+            
+                    # Increase the number of votes for the option. If this is the first vote, add the option to the dict.
+                    if self.label in self.view.votes:
+                        self.view.votes[self.label] += 1
+                        
+                    else:
+                        self.view.votes.update({self.label: 1})
+                        
+            else: 
+                if self.label in self.view.user_votes[interaction.user]:
+                    if self.view.recast == False:
+                        await interaction.response.send_message(ephemeral=True, embed=discord.Embed(title="You already voted!", description="Recasting your vote is disabled!", color=0xff2600))
+                        return
+                    
+                    # If recasting is allowed, remove the old vote
+                    else:
+                        self.view.user_votes[interaction.user].remove(self.label)
+                        if self.label in self.view.votes:
+                            if (self.view.votes[self.label] - 1) < 0:
+                                self.view.votes[self.label] == 0
+                            else:
+                                self.view.votes[self.label] -= 1
+                
+                # Since multiple votes are allowed, if the user has not voted for this option, add it to the votes
+                else:
+                    self.view.user_votes[interaction.user].append(self.label)
+                
+                    if self.label in self.view.votes:
+                        self.view.votes[self.label] += 1
+                        
+                    else:
+                        self.view.votes.update({self.label: 1})
+        
         else:
-            await interaction.response.send_message(content=f"Something went wrong, try voting again later!", ephemeral=True)
-
-class EndPollButton(discord.ui.Button):
-    def __init__(self, style=discord.ButtonStyle.red, label="End Poll", custom_id="end"):
-        super().__init__(style=style, label = label, custom_id = custom_id)
-
-    async def callback(self, interaction):
-        if self.view.owner == interaction.user.id:
-            self.view.clear_items()
-            await interaction.response.edit_message(content=interaction.message.content, view=None, embeds=interaction.message.embeds)
-        else:
-            await interaction.response.send_message(content="You can't end someone else's poll!", ephemeral=True)
-
-class PollMessage(discord.ui.View):
-    def __init__(self, multi, recast, owner):
-        self.reaction_log = {}
-        self.multi = multi
-        self.recast = recast
-        self.owner = owner
-        super().__init__()
-
-class PollOptionModal(discord.ui.Modal):
-    def __init__(self, view) -> None:
-        self.view = view
-        super().__init__("Creating an option to vote on")
-        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, custom_id="option_name", min_length=1, max_length=80, label="Type the name of your option"))
-
-    async def callback(self, interaction):
-        if len(self.view.option_list) == 19:
-            await interaction.response.send_message(content=f"You have the maximum number of options! (19)", ephemeral=True)
-            return
-        for option in self.view.option_list:
-            if option.label == self.children[0].value:
-                await interaction.response.send_message(content=f"You already have an option named: {self.children[0].value}", ephemeral=True)
-                return
-        self.view.option_list.append(PollButton(self.children[0].value))
-        await interaction.response.send_message(content=f"Added option {self.children[0].value}", ephemeral=True)
-
-class PollView(discord.ui.View):
-    def __init__(self, *items, timeout: 180, channel, embed, multi, recast):
-        self.channel = channel
-        self.embed = embed
-        self.multi = multi
-        self.recast = recast
-        self.option_list = []
-        super().__init__(*items, timeout=timeout)
-
-    # Confirm button
-    @discord.ui.button(style=discord.ButtonStyle.green, label="Looks good!", custom_id="confirm")
-    async def poll_confirm_callback(self, button, interaction):
-        poll = PollMessage(self.multi, self.recast, interaction.user.id)
-        try:
-            for button in self.option_list:
-                poll.add_item(button)
-            poll.add_item(EndPollButton())
-            await self.channel.send(embed=self.embed, view=poll)
-            await interaction.response.edit_message(content=f"Poll created in `#{self.channel.name}`!", view=None, embed=None)
-        except discord.errors.HTTPException:
-            await interaction.response.edit_message(content="Oh no, your poll failed to create...", view=None, embed=None)
+            self.view.user_votes.update({interaction.user: [self.label]})
+            
+            # Increase the number of votes for the option. If this is the first vote, add the option to the dict.
+            if self.label in self.view.votes:
+                self.view.votes[self.label] += 1
+                
+            else:
+                self.view.votes.update({self.label: 1})
+            
+        self.view.embed.insert_field_at(index=index ,name=f"Total Votes for: {self.label}", value=f"{self.view.votes[self.label]}", inline=True)
+        print(f"Votes: {self.view.votes}\nUser Votes: {self.view.user_votes}")
+        await interaction.response.edit_message(view=self.view, embed=self.view.embed)
+        
     
-    # Add vote option
-    @discord.ui.button(style=discord.ButtonStyle.blurple, label="Add Vote Option", custom_id="add")
-    async def add_callback(self, button, interaction):
-        await interaction.response.send_modal(PollOptionModal(self))
+    
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        embed=discord.Embed(title="Something went wrong!", description=error, color=0xff2600)
+        await interaction.response.send_message(ephemeral=True, embed=embed)
 
-    # View vote options
-    @discord.ui.button(style=discord.ButtonStyle.blurple, label="View Vote Option", custom_id="view")
-    async def view_callback(self, button, interaction):
-        await interaction.response.send_message(f"Here are your options so far: ", ephemeral=True)
+# Define the View for the poll
+class PollView(ui.View):
+    def __init__(self, multi, recast, options, poll_embed):
+        super().__init__(timeout=None)
+        self.multi = multi
+        self.recast = recast
+        self.options = options
+        self.votes = {}
+        self.user_votes = {}
+        self.embed = poll_embed
+        
+        for option in self.options:
+            self.add_item(PollButton(option))
+            
+    
+    
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        embed=discord.Embed(title="Something went wrong!", description=error, color=0xff2600)
+        await interaction.response.send_message(ephemeral=True, embed=embed)
 
-    # Cancel button
-    @discord.ui.button(style=discord.ButtonStyle.red, label="Nevermind", custom_id="cancel")
-    async def poll_cancel_callback(self, button, interaction):
-        await interaction.response.edit_message(content="Poll has been discarded", view=None, embed=None)
+# Define a modal for creating options
+class OptionModal(ui.Modal, title="Creating an option"):
+    def __init__(self, view):
+        super().__init__()
+        self.original_view = view
+    
+    # First modal input: name of the poll
+    option = ui.TextInput(
+        label='Option Name',
+        placeholder='Name of the option goes here...',
+    )
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        # If there are 19 options, disable the abilty to add more options (Discord limits us to 20 options)
+        if len(self.original_view.options_list) == 19:
+            for child in self.original_view.children:
+                if child.label == "Add Option":
+                    self.original_view.children[self.original_view.children.index(child)].disabled = True
+                    
+        for child in self.original_view.children:
+            if child.label == "Remove Option":
+                self.original_view.children[self.original_view.children.index(child)].disabled = False
+            
+            if child.label == "Finalize Poll":
+                self.original_view.children[self.original_view.children.index(child)].disabled = False
+        
+        # Add the option to the list and update the embed
+        self.original_view.options_list.append(self.option.value)
+        self.original_view.options_embed.add_field(name=f"Option {len(self.original_view.options_list)}", value=f"{self.option.value}", inline=False)
+        await interaction.response.edit_message(view=self.original_view, embed=self.original_view.options_embed)
 
-class PollModal(discord.ui.Modal):
-    def __init__(self, channel, multi, recast) -> None:
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        embed=discord.Embed(title="Something went wrong!", description=error, color=0xff2600)
+        await interaction.response.send_message(ephemeral=True, embed=embed)
+
+# Define a dropdown for removing options
+class OptionsRemovalDropdown(ui.Select):
+    def __init__(self, options_view):
+        self.options_view = options_view
+
+        # Make a list to hold the options
+        options = []
+        
+        # Now, populate the list
+        i = 0
+        j = 1
+        for option in self.options_view.options_list:
+            options.append(discord.SelectOption(label=f"Option {j}", description=f"{option}", value=i))
+            i += 1
+            j += 1
+        
+        super().__init__(placeholder='Select options to remove...', min_values=1, max_values=len(self.options_view.options_list), options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        temp_options = copy.copy(self.options_view.options_list)
+        options_to_remove = []
+        final_options = []
+        
+        # Get the options to remove
+        for option in self.values:
+            options_to_remove.append(temp_options[int(option)])
+        
+        # Remove the options from the list
+        for option in temp_options:
+            if option not in options_to_remove:
+                final_options.append(option)
+        
+        # Update the list
+        self.options_view.options_list = final_options
+        
+        # Now, rebuild the embed
+        self.options_view.options_embed.clear_fields()
+        i = 1
+        for option in final_options:
+            self.options_view.options_embed.add_field(name=f"Option {i}", value=f"{option}", inline=False)
+            i += 1
+            
+        if len(self.options_view.options_list) == 0:
+            for child in self.options_view.children:
+                if child.label == "Remove Option":
+                    self.options_view.children[self.options_view.children.index(child)].disabled = True
+                    
+                if child.label == "Finalize Poll":
+                    self.options_view.children[self.options_view.children.index(child)].disabled = True
+                    
+        for child in self.options_view.children:
+            if child.label == "Add Option":
+                self.options_view.children[self.options_view.children.index(child)].disabled = False
+            
+        await interaction.response.edit_message(embed=self.options_view.options_embed, view=self.options_view)
+        
+# Define a view for removing options
+class OptionsRemovalView(ui.View):
+    def __init__(self, previous_view):
+        super().__init__()
+        self.previous_view = previous_view
+    
+        self.add_item(OptionsRemovalDropdown(previous_view))
+
+# Define the View that handels adding options to the poll
+class OptionsView(ui.View):
+    def __init__(self, name, description, channel, multi, recast):
+        super().__init__()
+        self.name = name
+        self.description = description
+        self.options_list = []
+        self.options_embed = discord.Embed(title="List of Options", description="Here's the current list of your options")
         self.channel = channel
         self.multi = multi
         self.recast = recast
-        super().__init__("Let's create a poll")
-        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.short, custom_id="poll_name", min_length=2, label="Type the name of your poll"))
-        self.add_item(discord.ui.InputText(style=discord.InputTextStyle.paragraph, custom_id="poll_body", min_length=2, label="Type what your poll is about"))
+    
+    @discord.ui.button(label='Add Option', style=discord.ButtonStyle.green)
+    async def add(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(OptionModal(self))
+        
+    @discord.ui.button(label='Remove Option', style=discord.ButtonStyle.red, disabled=True)
+    async def remove(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if len(self.options_list) == 0:
+            button.disabled = True
+        else:
+            button.disabled = False
+        await interaction.response.edit_message(view=OptionsRemovalView(self), embed=self.options_embed)
+    
+    @discord.ui.button(label='Finalize Poll', style=discord.ButtonStyle.blurple, disabled=True)
+    async def finalize(self, interaction: discord.Interaction, button: discord.ui.Button):
+        for button in self.children:
+            button.disabled = True
+            
+        embed=discord.Embed(title="Success!", url=self.channel.jump_url ,description=f"Your poll has been sent to `#{self.channel}`", color=0x00f900)
+        await interaction.response.edit_message(embed=embed)
+        
+        poll_embed=discord.Embed(title=self.name, description=self.description, color=0x00f900)
+        
+        for option in self.options_list:
+            poll_embed.add_field(name=f"Total Votes for: {option}", value="0", inline=True)
+        
+        await self.channel.send(view=PollView(self.multi, self.recast, self.options_list, poll_embed), embed=poll_embed)
+        self.stop()
 
-    async def callback(self, interaction):
-        embed = discord.Embed(title=self.children[0].value, description=self.children[1].value)
-        embed.set_author(name=interaction.user.name, icon_url=interaction.user.display_avatar.url)
-        await interaction.response.send_message("Does your poll look good to go?", ephemeral=True, embed=embed, view=PollView(timeout=None, channel=self.channel, embed=embed, multi=self.multi, recast=self.recast))
+# Define a simple View that gives us a confirmation menu
+class Confirm(ui.View):
+    def __init__(self, embed, name, description, channel, multi, recast):
+        super().__init__()
+        self.embed = embed
+        self.name = name
+        self.description = description
+        self.channel = channel
+        self.multi = multi
+        self.recast = recast
 
-def define_slash(guild_ids, slash):
-    @slash.slash_command(name="poll", description="Generate a poll", guild_ids=guild_ids)
-    async def poll(
-        interaction, 
-        channel: discord.Option(discord.TextChannel, "What channel should the poll be posted to", required=True),
-        multi: discord.Option(bool, "Can a user vote more than one option?", required=True),
-        recast: discord.Option(bool, "Can a user re-cast their vote?", required=True)
-        ):
-        await interaction.response.send_modal(PollModal(channel, multi, recast))
+    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
+    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        options_view = OptionsView(self.name, self.description, channel=self.channel, multi=self.multi, recast=self.recast)
+        await interaction.response.edit_message(view=options_view, embed=options_view.options_embed)
+
+    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        for button in self.children:
+            button.disabled = True
+        await interaction.response.edit_message(view=self, embed=self.embed)
+        self.stop()
+
+class Poll(ui.Modal, title="Create a Poll"):
+    def __init__(self, channel, multi, recast):
+        super().__init__()
+        self.channel = channel
+        self.multi = multi
+        self.recast = recast
+    
+    # First modal input: name of the poll
+    name = ui.TextInput(
+        label='Poll Name',
+        placeholder='Name of the poll goes here...',
+    )
+    
+    # Second modal input: description of the poll
+    description = ui.TextInput(
+        label='Optional description of your poll',
+        style= discord.TextStyle.long,
+        placeholder='Type your description here...',
+        required=False,
+        max_length=300,
+    )
+    
+    async def on_submit(self, interaction: discord.Interaction):
+        embed=discord.Embed(title="Poll Check", description='Everything look good?', color=0xfffb00)
+        embed.add_field(name="Name", value=self.name, inline=False)
+        if self.description.value != "":
+            embed.add_field(name="Description", value=self.description, inline=False)
+        embed.add_field(name="Channel", value=f"Your poll will be sent to: `#{self.channel}`", inline=True)
+        embed.add_field(name="Multi-casting", value=f"Casting multiple votes is set to: `{self.multi}`", inline=True)
+        embed.add_field(name="Recasting", value=f"Recasting votes is set to: `{self.recast}`", inline=True)
+        view = Confirm(embed, name=self.name, description=self.description, channel=self.channel, multi=self.multi, recast=self.recast)
+        await interaction.response.send_message(ephemeral=True, view=view, embed=embed)
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
+        embed=discord.Embed(title="Something went wrong!", description=error, color=0xff2600)
+        await interaction.response.send_message(ephemeral=True, embed=embed)
+
+def define_slash(client):
+    @client.tree.command(name="poll", description="Generate a poll")
+    @app_commands.describe(
+        channel="The channel to send the poll in",
+        multi="Whether or not the poll is multiple choice", 
+        recast="Whether or not a vote can be recast"
+    )
+    async def poll( interaction, channel: discord.TextChannel, multi: bool, recast: bool):
+        await interaction.response.send_modal(Poll(channel, multi, recast))

@@ -7,11 +7,10 @@
 from mongoengine import connect, Document, ListField, StringField, URLField, IntField
 
 # Connect to our MongoServer
-server_file = open("server.txt", "r")
-server = server_file.read()
 
 def db_connect():
-    connect(db="luigibot", host=server, port=27017)
+    with open("keys/mongo_db_key.key", "r") as s:
+        connect(db="luigibot", host=s, port=27017)
 
 class Character(Document):
     discord_name = StringField(required=True, max_length=20)
