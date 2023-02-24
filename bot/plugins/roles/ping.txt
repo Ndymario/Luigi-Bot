@@ -1,0 +1,7 @@
+<@&784515404202508358> - Role that gets pinged every time any of these roles get pinged:
+
+• <@&908837906532167731> - Role that gets pinged for general server updates (such as a new channel being created)
+
+• <@&908837812583927900> - Role that gets pinged for any updates on mods found in the `User Projects` category
+
+• <@&908838004699828294> - Role that gets pinged for any server event update (such as a level contest)

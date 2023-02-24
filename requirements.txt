@@ -1,0 +1,3 @@
+hikari-crescent==0.5.2
+hikari==2.0.0.dev116
+hikari-miru==3.0.2
