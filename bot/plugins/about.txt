@@ -1,0 +1,3 @@
+Hi, I'm Luigi Bot! I'm a bot coded and maintained by **Ndymario#2326**!
+
+If you have any issues with (or suggestions for) the bot, open an issue on Luigi Bot's repo.

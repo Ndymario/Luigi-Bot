@@ -1,0 +1,5 @@
+So, you want to write some code for NSMB DS?
+
+To get started, check out the NSMB Code Template, along side the NSMB Code Reference, using the buttons below.
+
+Keep in mind that the old template, created by Dirbaio, is now outdated. As such, support for code mods will only be given for code written in the new template.
