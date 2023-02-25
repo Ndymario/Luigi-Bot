@@ -8,7 +8,7 @@ plugin = crescent.Plugin()
 
 
 class WelcomeView(miru.View):
-    @miru.button(label="Rules", style=hikari.ButtonStyle.PRIMARY, emoji="📜")
+    @miru.button(label="Rules", style=hikari.ButtonStyle.PRIMARY, emoji="📜", custom_id="rules_button")
     async def rules_button(self, button: miru.Button, ctx: miru.ViewContext) -> None:
         rules = []
         cur_rule = 0
@@ -20,7 +20,7 @@ class WelcomeView(miru.View):
         navigator = nav.NavigatorView(pages=rules)
         await navigator.send(to=ctx.interaction, ephemeral=True)
 
-    @miru.button(label="Roles", style=hikari.ButtonStyle.SECONDARY, emoji="🪪")
+    @miru.button(label="Roles", style=hikari.ButtonStyle.SECONDARY, emoji="🪪", custom_id="roles_button")
     async def role_list(self, button: miru.Button, ctx: miru.ViewContext):
         with open("./bot/plugins/roles/admin.txt", "r") as roles_txt:
             admin_txt = roles_txt.read()
@@ -60,7 +60,7 @@ class WelcomeView(miru.View):
                                             description="Receive a ping for any server event announcement"),
                           miru.SelectOption(label="Server Updates", emoji="🆕",
                                             description="Receive a ping for any server changes or updates")
-                      ])
+                      ], custom_id="role_select")
     async def role_select(self, select: miru.RoleSelect, ctx: miru.ViewContext):
         roles = select.values
         role_map = {"Server Pings": "784515404202508358", "Mod Updates": "908837812583927900",
@@ -79,6 +79,7 @@ class WelcomeView(miru.View):
             for role in role_map:
                 await ctx.app.rest.remove_role_from_member(guild=ctx.guild_id, user=ctx.user.id, role=role_map[role],
                                                            reason="Self-assigned role")
+
 
 @plugin.include
 @crescent.command(name="welcome", description="Creates the welcome message")

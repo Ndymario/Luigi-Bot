@@ -1,0 +1,8 @@
+# fly.toml file generated for luigi-bot on 2023-02-24T16:02:14-06:00
+
+app = "luigi-bot"
+kill_signal = "SIGINT"
+kill_timeout = 5
+processes = []
+
+[env]

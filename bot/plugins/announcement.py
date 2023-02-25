@@ -10,9 +10,9 @@ class MyModal(miru.Modal):
         super().__init__(title)
         self.view = view
 
-    name = miru.TextInput(label="Title", placeholder="Type a title", required=True)
+    name = miru.TextInput(label="Title", placeholder="Type a title", required=True, max_length=256)
     bio = miru.TextInput(label="Announcement", placeholder="Type a message to announce",
-                         style=hikari.TextInputStyle.PARAGRAPH, required=True)
+                         style=hikari.TextInputStyle.PARAGRAPH, required=True, max_length=4000)
 
     # The callback function is called after the user hits 'Submit'
     async def callback(self, ctx: miru.ModalContext) -> None:
@@ -29,7 +29,7 @@ class ModalView(miru.View):
     title = None
     message = None
 
-    @miru.channel_select(channel_types=[hikari.ChannelType.GUILD_TEXT], placeholder="Channel to send the message to",
+    @miru.channel_select(channel_types=[hikari.ChannelType.GUILD_TEXT, hikari.ChannelType.GUILD_NEWS], placeholder="Channel to send the message to",
                          max_values=1)
     async def channel_select(self, select: miru.TextSelect, ctx: miru.ViewContext):
         self.channel = select.values[0]
@@ -53,6 +53,9 @@ class ModalView(miru.View):
     async def modal_button(self, button: miru.Button, ctx: miru.ViewContext) -> None:
         modal = MyModal(title="Announcement", view=self)
         await ctx.respond_with_modal(modal)
+        sent_embed = hikari.Embed(title="Modal sent!",
+                                  description="When you see this, your announcement should be live")
+        await ctx.edit_response(components=None, embed=sent_embed)
 
 
 @plugin.include
@@ -65,7 +68,7 @@ class SayCommand:
                              description=f"Pick a channel you want to make the announcement in and let's go!"
                                          f" (You'll be presented with a Modal to make the announcement)",
                              color="#2f3136")
-        view = ModalView()
+        view = ModalView(timeout=None)
 
         message = await ctx.respond(components=view, ensure_message=True, embed=embed, ephemeral=True)
         await view.start(message)
