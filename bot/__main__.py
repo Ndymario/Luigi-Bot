@@ -26,7 +26,7 @@ async def starboard(event: hikari.ReactionAddEvent):
             star_embed = hikari.Embed(title=f"<#{message.channel_id}>", description=message.content,
                                       url=message.make_link(message.guild_id))
             star_embed.set_author(name=message.author.username, icon=message.author.avatar_url)
-            await bot.rest.create_message(channel=796089340433793044, embed=star_embed)
+            await bot.rest.create_message(channel=908854613111877652, embed=star_embed)
 
 
 bot.run()
