@@ -2,8 +2,9 @@ import crescent
 import hikari
 import miru
 import os
+from __main__ import Database
 
-plugin = crescent.Plugin()
+plugin = crescent.Plugin[hikari.GatewayBot, Database]()
 
 
 @plugin.include

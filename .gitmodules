@@ -1,6 +1,0 @@
-[submodule "games/RPG-Core"]
-	path = games/RPG-Core
-	url = https://github.com/Ndymario/RPG-Framework.git
-[submodule "games/Checkers-Core"]
-	path = games/Checkers-Core
-	url = https://github.com/Ndymario/Checkers-Framework.git

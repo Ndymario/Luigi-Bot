@@ -1,6 +1,8 @@
 import crescent
+import hikari
+from __main__ import Database
 
-plugin = crescent.Plugin()
+plugin = crescent.Plugin[hikari.GatewayBot, Database]()
 
 
 @plugin.include

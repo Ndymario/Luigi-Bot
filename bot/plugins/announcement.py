@@ -1,8 +1,9 @@
 import crescent
 import hikari
 import miru
+from __main__ import Database
 
-plugin = crescent.Plugin()
+plugin = crescent.Plugin[hikari.GatewayBot, Database]()
 
 
 class MyModal(miru.Modal):
@@ -85,5 +86,5 @@ class SayCommand:
 
         pings = ""
         for role in view.mentions:
-            pings += role.mention
+            pings += role.mention + " "
         await ctx.app.rest.create_message(int(view.channel), embed=embed, role_mentions=True, content=pings)

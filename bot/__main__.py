@@ -1,32 +1,156 @@
 import os
+import datetime
+import pytz
 import hikari
 import crescent
 import miru
+from bot.database import Database
+
 from bot.plugins.welcome import WelcomeView
+
 
 bot = hikari.GatewayBot(os.getenv("BOT_TOKEN"), intents=hikari.Intents.ALL)
 miru.install(bot)
-client = crescent.Client(bot)
+client = crescent.Client(bot, Database())
 
 client.plugins.load_folder("bot.plugins")
 
+# If you're using the bot for yourself, you'll need to edit these ID's to match your channel IDs
+starboard = 908854613111877652
+mod_log = 796089340433793044
+member_count = 638461996207177760
+guild_id = 399424476259024897
+
+
+async def get_channel_num():
+    channel = await client.app.rest.fetch_channel(638461996207177760)
+    name = channel.name[9:]
+    return int(name)
+
 
 @bot.listen()
-async def startup_views(event: hikari.StartedEvent) -> None:
+async def startup(event: hikari.StartedEvent) -> None:
+    # Start up persistent views
     view = WelcomeView(timeout=None)
     await view.start()
+
+    # Fetch the current member count and update the channel name if it's out of date
+    num = await get_channel_num()
+    count = 0
+
+    for member in await client.app.rest.fetch_members(guild_id):
+        count += 1
+
+    if num != count:
+        await client.app.rest.edit_channel(member_count, name=f"Members: {count}")
+
+
+@bot.listen()
+async def shutdown(event: hikari.StoppedEvent):
+    # Close the connection to our DB
+    client.model.close()
 
 
 @bot.listen()
 async def starboard(event: hikari.ReactionAddEvent):
     message = await bot.rest.fetch_message(event.channel_id, event.message_id)
-    print(message)
     for reaction in message.reactions:
         if reaction.emoji == "⭐" and reaction.count >= 5:
             star_embed = hikari.Embed(title=f"<#{message.channel_id}>", description=message.content,
                                       url=message.make_link(message.guild_id))
             star_embed.set_author(name=message.author.username, icon=message.author.avatar_url)
-            await bot.rest.create_message(channel=908854613111877652, embed=star_embed)
+            await bot.rest.create_message(channel=starboard, embed=star_embed)
+
+
+@bot.listen()
+async def exp(event: hikari.MessageCreateEvent):
+    level_table = {30: 1093830095866708048, 490: 1093830149029511178, 2130: 1093830236849836093,
+                   6860: 1093830289345757224,
+                   22500: 1093830321679646752, 50000: 1093830355791912992}
+    if event.is_human:
+        author_id = event.author.id
+        users = client.model.fetch_users()
+
+        for user in users:
+            if event.author.id in user:
+                user_exp = client.model.fetch_exp(author_id)
+                client.model.set_exp(author_id, user_exp[0] + 1)
+
+                # If the user leveled up, level them up
+                if user_exp[0] + 1 in level_table:
+                    user_lvl = client.model.fetch_level(author_id)
+                    client.model.set_level(user_lvl[0] + 1)
+
+                    await event.app.rest.add_role_to_member(guild=event.message.guild_id, user=author_id,
+                                                            role=level_table[user_exp[0] + 1],
+                                                            reason=f"User ranked up (EXP = {user_exp[0] + 1})")
+
+                    embed = hikari.Embed(title="Level up!", description="Way to go, you leveled up!")
+                    embed.set_author(name=event.author.username, icon=event.author.avatar_url)
+
+                    await event.app.rest.create_message(channel=event.channel_id, embed=embed)
+                return
+
+        else:
+            # If the user doesn't exist, add them to the table
+            client.model.add_user(author_id)
+
+
+@bot.listen()
+async def del_log(event: hikari.MessageDeleteEvent):
+    if event.old_message is not None:
+        if not event.old_message.author.is_bot:
+            author = event.old_message.author
+            content = event.old_message.content
+            channel = await bot.rest.fetch_channel(event.old_message.channel_id)
+
+            embed = hikari.Embed(description=f"{author.mention} deleted a message in {channel.mention}",
+                                 timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")), color="#FF0000")
+
+            embed.set_author(name=f"{author.username}#{author.discriminator}", icon=author.avatar_url)
+
+            embed.add_field(name="Deleted message:", value=content)
+            embed.add_field(name="When:",
+                            value=f"<t:{event.old_message.timestamp.astimezone(pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+            embed.add_field(name="ID", value=f"```\nUser: {author.id}\nMessage: {event.old_message.id}```")
+
+            await bot.rest.create_message(channel=mod_log, embed=embed)
+
+
+@bot.listen()
+async def edit_log(event: hikari.MessageUpdateEvent):
+    if event.old_message is not None:
+        if not event.old_message.author.is_bot:
+            author = event.message.author
+            before_content = event.old_message.content
+            after_content = event.message.content
+            message = event.message
+
+            embed = hikari.Embed(
+                description=f"{author.mention} updated their message\n{message.make_link(message.guild_id)}",
+                timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")), color="#0000FF")
+
+            embed.set_author(name=f"{author.username}#{author.discriminator}", icon=author.avatar_url)
+
+            embed.add_field(name="Before the Edit:", value=before_content)
+            embed.add_field(name="After the Edit:", value=after_content)
+            embed.add_field(name="When:",
+                            value=f"<t:{event.old_message.timestamp.astimezone(pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+            embed.add_field(name="ID", value=f"```\nUser: {author.id}\nMessage: {message.id}```")
+
+            await bot.rest.create_message(channel=mod_log, embed=embed)
+
+
+@bot.listen()
+async def inc_member_count(event: hikari.MemberCreateEvent):
+    current = await get_channel_num()
+    await client.app.rest.edit_channel(638461996207177760, name=f"Members: {current + 1}")
+
+
+@bot.listen()
+async def dec_member_count(event: hikari.MemberDeleteEvent):
+    current = await get_channel_num()
+    await client.app.rest.edit_channel(638461996207177760, name=f"Members: {current - 1}")
 
 
 bot.run()

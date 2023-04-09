@@ -3,8 +3,9 @@ import hikari
 import miru
 import os
 from miru.ext import nav
+from __main__ import Database
 
-plugin = crescent.Plugin()
+plugin = crescent.Plugin[hikari.GatewayBot, Database]()
 
 
 class WelcomeView(miru.View):
@@ -34,6 +35,9 @@ class WelcomeView(miru.View):
         with open("./bot/plugins/roles/misc.txt", "r") as roles_txt:
             misc_txt = roles_txt.read()
 
+        with open("./bot/plugins/roles/levels.txt", "r") as roles_txt:
+            misc_txt = roles_txt.read()
+
         admin = hikari.Embed(title=f"**__Administrative Roles__**", description=f"{admin_txt}", color="#1E92F4")
         admin.set_footer("Administrative roles are earned through trust, "
                          "and as such asking for them will only lower your chances of getting them.")
@@ -42,10 +46,13 @@ class WelcomeView(miru.View):
         identity.set_footer("Proof may be requested for acquiring the modding roles.")
 
         mention = hikari.Embed(title=f"**__Mention Roles__**", description=f"{ping_txt}", color="#1E92F4")
-        mention.set_footer("These roles are self-assigned with the /role command.")
+        mention.set_footer("These roles are self-assigned.")
 
         misc = hikari.Embed(title=f"**__Miscellaneous Roles__**", description=f"{misc_txt}", color="#1E92F4")
         misc.set_footer("These roles are not given out.")
+
+        misc = hikari.Embed(title=f"**__Level Roles__**", description=f"{misc_txt}", color="#1E92F4")
+        misc.set_footer("You can earn these by talking in chat.")
 
         navigator = nav.NavigatorView(pages=[admin, identity, mention, misc])
         await navigator.send(to=ctx.interaction, ephemeral=True)
