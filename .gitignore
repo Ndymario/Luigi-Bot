@@ -143,3 +143,7 @@ server.txt
 
 # Beta Discord
 /discord.py
+
+# NDS Files
+.nds
+*.nds

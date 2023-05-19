@@ -1,104 +1,127 @@
+from dataclasses import dataclass
+from datetime import datetime
+from pocketbase import PocketBase
+from json import dumps
 import hikari
-import psycopg2
 import os
+
+
+@dataclass
+class User:
+    id = int
+    username = str
+    exp = int
+    level = int
+    birthday = datetime
+
+    def __str__(self):
+        return f"ID: {self.id}\nEXP: {self.exp}\nLVL: {self.level}\nBirthday: {self.birthday}"
 
 
 # Class to represent our DB connection
 class Database:
     def __init__(self):
-        self._conn = None
-        self._cursor = None
-        self.open()
+        self.client = PocketBase("https://" + os.getenv("DATABASE_URL"))
+        self.max_level = 6
+        self.max_exp = 50000
 
-    @property
-    def conn(self):
-        return self._conn
+        self.level_table = level_table = {0: ("(No Rank)", range(0, 30)), 1: ("Super Mushroom", range(30, 490)),
+                                          2: ("Fire Flower", range(490, 2130)), 3: ("Blue Shell", range(2130, 6860)),
+                                          4: ("Super Star", range(6860, 22500)), 5: ("Big Star", range(22500, 50000)),
+                                          6: ("Mega Mushroom", range(500001, 999999999999999999))}
 
-    @property
-    def cursor(self):
-        return self._cursor
-
-    def open(self):
-        # Connect to the Luigi Bot Database for user EXP, Levels, and Birthdays
-        self._conn = psycopg2.connect(os.getenv("DATABASE_URL"))
-        self._cursor = self._conn.cursor()
-
-    def close(self):
-        self._cursor.close()
-        self._conn.close()
-
-    def restart(self):
-        self.close()
-        self.open()
-
-    def add_user(self, user_id):
+    def _get_pb_user(self, user_id: int):
         try:
-            self.cursor.execute(f"INSERT INTO users(user_id, level, exp) VALUES({user_id}, 0, 1)")
-            self._conn.commit()
-        except:
-            self.restart()
-            raise Exception("Something went wrong adding the user to the DB")
+            record = self.client.collection("users").get_list(1, 1, {"filter": f"user_id = {user_id}"}).items[0]
 
-    def fetch_user(self, user_id):
-        try:
-            self.cursor.execute(f"SELECT * from users WHERE user_id = {user_id}")
-            return self.cursor.fetchone()
-        except:
-            self.restart()
-            raise Exception("Something went wrong fetching the user")
+            user = User()
+            user.id = record.collection_id["id"]
+            user.exp = record.collection_id["exp"]
+            user.level = record.collection_id["level"]
+            user.birthday = record.collection_id["birthday"]
 
-    def fetch_users(self):
-        try:
-            self.cursor.execute(f"SELECT * FROM users")
-            return self.cursor.fetchall()
-        except:
-            self.restart()
-            raise Exception("Something went wrong fetching the users")
+            return user
 
-    def fetch_exp(self, user_id):
-        try:
-            self.cursor.execute(f"SELECT exp FROM users WHERE user_id = {user_id}")
-            return self.cursor.fetchone()
-        except:
-            self.restart()
-            raise Exception("Something went wrong fetching the user's exp")
+        except IndexError:
+            return None
 
-    def set_exp(self, user_id, amount):
-        try:
-            self.cursor.execute(f"UPDATE users SET exp = {amount} WHERE user_id = {user_id}")
-            self._conn.commit()
-        except:
-            self.restart()
-            raise Exception("Something went wrong updating the user's exp")
+    def _set_level(self, user: User, level: int):
+        # This if is redundant dur to where this function is called, but it never hurt to make sure
+        if user is None:
+            return
 
-    def fetch_level(self, user_id):
-        try:
-            self.cursor.execute(f"SELECT level FROM users WHERE user_id = {user_id}")
-            return self.cursor.fetchone()
-        except:
-            self.restart()
-            raise Exception("Something went wrong fetching the user's level")
+        self.client.collection("users").update(str(user.id), {"level": level})
 
-    def set_level(self, user_id, level):
-        try:
-            self.cursor.execute(f"UPDATE users SET level = {level} WHERE user_id = {user_id}")
-            self._conn.commit()
-        except:
-            self.restart()
-            raise Exception("Something went wrong updating the user's level")
+    def get_user(self, user_id: int):
+        user = self._get_pb_user(user_id)
 
-    def fetch_leaderboard(self):
-        try:
-            self.cursor.execute(f"SELECT user_id, level, exp FROM users ORDER BY exp DESC")
-            return self.cursor.fetchall()
-        except:
-            self.restart()
-            raise Exception("Something went wrong fetching the leaderboard")
+        if user is None:
+            return None
 
-    def set_birthday(self, user_id, day, month, year):
-        try:
-            self.cursor.execute(f"UPDATE users SET birthday='{year}-{month}-{day}' WHERE user_id={user_id}")
-            self._conn.commit()
-        except:
-            self.restart()
-            raise Exception("Something went wrong updating the user's birthday")
+        return user
+
+    def add_user(self, user_id: int, username: str):
+        # Prevent duplicate user entries
+        if self._get_pb_user(user_id) is not None:
+            raise ValueError(f"This user (id = {user_id}) already exists in the database!")
+
+        self.client.collection("users").create({
+            "user_id": user_id,
+            "username": username,
+            "exp": 0,
+            "level": 0,
+            "birthday": None
+        })
+
+    def get_exp(self, user_id: int):
+        user = self._get_pb_user(user_id)
+        if user is None:
+            return None
+
+        return user.exp
+
+    def set_exp(self, user_id: int, exp: int):
+        user = self._get_pb_user(user_id)
+
+        if user is None:
+            return False
+
+        self.client.collection("users").update(str(user.id), {"exp": exp})
+
+        for level in self.level_table:
+            if exp in self.level_table[level][1] and level != user.level:
+                self._set_level(user, level)
+                return True
+            elif exp > self.max_exp and user.level != self.max_level:
+                self._set_level(user, self.max_level)
+                return True
+
+    def get_level(self, user_id: int):
+        user = self._get_pb_user(user_id)
+
+        if user is None:
+            return None
+
+        return user.level
+
+    def fetch_leaderboard(self, page: int):
+        return self.client.collection("users").get_list(page, 10, {"sort": "-exp"}).items
+
+    def get_birthday(self, user_id: int):
+        user = self._get_pb_user(user_id)
+
+        if user is None:
+            return None
+
+        return user.birthday
+
+    def set_birthday(self, user_id: int, date):
+        user = self._get_pb_user(user_id)
+        if user is None:
+            return None
+
+        self.client.collection("users").update(str(user.id), {"birthday": str(date)})
+
+
+if __name__ == "__main__":
+    db = Database()
