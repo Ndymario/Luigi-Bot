@@ -5,3 +5,5 @@
 • <@&908837812583927900> - Role that gets pinged for any updates on mods found in the `User Projects` category
 
 • <@&908838004699828294> - Role that gets pinged for any server event update (such as a level contest)
+
+• <@&1078566718198272071> - Role that gets pinged for any <@1078565741219041341> updates

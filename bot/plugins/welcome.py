@@ -36,7 +36,7 @@ class WelcomeView(miru.View):
             misc_txt = roles_txt.read()
 
         with open("./bot/plugins/roles/levels.txt", "r") as roles_txt:
-            misc_txt = roles_txt.read()
+            level_txt = roles_txt.read()
 
         admin = hikari.Embed(title=f"**__Administrative Roles__**", description=f"{admin_txt}", color="#1E92F4")
         admin.set_footer("Administrative roles are earned through trust, "
@@ -51,8 +51,9 @@ class WelcomeView(miru.View):
         misc = hikari.Embed(title=f"**__Miscellaneous Roles__**", description=f"{misc_txt}", color="#1E92F4")
         misc.set_footer("These roles are not given out.")
 
-        misc = hikari.Embed(title=f"**__Level Roles__**", description=f"{misc_txt}", color="#1E92F4")
-        misc.set_footer("You can earn these by talking in chat.")
+        misc = hikari.Embed(title=f"**__Level Roles__**", description=f"{level_txt}", color="#1E92F4")
+        misc.set_footer("You can earn these by talking in chat. The EXP requirement is hidden until at least one person"
+                        " has the role for some fun!")
 
         navigator = nav.NavigatorView(pages=[admin, identity, mention, misc])
         await navigator.send(to=ctx.interaction, ephemeral=True)
@@ -66,12 +67,15 @@ class WelcomeView(miru.View):
                           miru.SelectOption(label="Event Updates", emoji="🗣️",
                                             description="Receive a ping for any server event announcement"),
                           miru.SelectOption(label="Server Updates", emoji="🆕",
-                                            description="Receive a ping for any server changes or updates")
+                                            description="Receive a ping for any server changes or updates"),
+                          miru.SelectOption(label="Luigi Bot Updates", emoji="🤖",
+                                            description="Receive a ping for any Luigi Bot updates")
                       ], custom_id="role_select")
     async def role_select(self, select: miru.RoleSelect, ctx: miru.ViewContext):
         roles = select.values
         role_map = {"Server Pings": "784515404202508358", "Mod Updates": "908837812583927900",
-                    "Event Updates": "908838004699828294", "Server Updates": "908837906532167731"}
+                    "Event Updates": "908838004699828294", "Server Updates": "908837906532167731",
+                    "Luigi Bot Updates": "1078566718198272071"}
 
         if len(roles) != 0:
             role_list = []

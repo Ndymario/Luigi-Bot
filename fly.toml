@@ -1,8 +1,9 @@
-# fly.toml file generated for luigi-bot on 2023-02-24T16:02:14-06:00
+# fly.toml app configuration file generated for luigi-bot on 2023-05-22T16:49:54-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
 app = "luigi-bot"
+primary_region = "dfw"
 kill_signal = "SIGINT"
-kill_timeout = 5
-processes = []
-
-[env]
+kill_timeout = "5s"

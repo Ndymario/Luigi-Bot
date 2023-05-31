@@ -17,7 +17,7 @@ client.plugins.load_folder("bot.plugins")
 
 # If you're using the bot for yourself, you'll need to edit these ID's to match your channel IDs
 starboard = 908854613111877652
-mod_log = 796089340433793044
+mod_log = 725412558596604010
 member_count = 638461996207177760
 guild_id = 399424476259024897
 
@@ -46,12 +46,6 @@ async def startup(event: hikari.StartedEvent) -> None:
 
 
 @bot.listen()
-async def shutdown(event: hikari.StoppedEvent):
-    # Close the connection to our DB
-    client.model.close()
-
-
-@bot.listen()
 async def starboard(event: hikari.ReactionAddEvent):
     message = await bot.rest.fetch_message(event.channel_id, event.message_id)
     for reaction in message.reactions:
@@ -64,36 +58,43 @@ async def starboard(event: hikari.ReactionAddEvent):
 
 @bot.listen()
 async def exp(event: hikari.MessageCreateEvent):
-    level_table = {30: 1093830095866708048, 490: 1093830149029511178, 2130: 1093830236849836093,
-                   6860: 1093830289345757224,
-                   22500: 1093830321679646752, 50000: 1093830355791912992}
+    exp_per_message = client.model.exp_multiplier
+
+    if bot.get_me().id == 1091516626274365502:
+        exp_per_message = 0
+
     if event.is_human:
         author_id = event.author.id
-        users = client.model.fetch_users()
+        author_name = event.author.username
+        user = client.model.get_user(author_id)
 
-        for user in users:
-            if event.author.id in user:
-                user_exp = client.model.fetch_exp(author_id)
-                client.model.set_exp(author_id, user_exp[0] + 1)
+        if user is not None:
+            leveled_up = client.model.set_exp(author_id, user.exp + exp_per_message)
 
-                # If the user leveled up, level them up
-                if user_exp[0] + 1 in level_table:
-                    user_lvl = client.model.fetch_level(author_id)
-                    client.model.set_level(user_lvl[0] + 1)
+            # If the user leveled up, level them up
+            if leveled_up:
+                level_table = {30: 1093830095866708048, 490: 1093830149029511178, 2130: 1093830236849836093,
+                               6860: 1093830289345757224,
+                               22500: 1093830321679646752, 50000: 1093830355791912992}
 
-                    await event.app.rest.add_role_to_member(guild=event.message.guild_id, user=author_id,
-                                                            role=level_table[user_exp[0] + 1],
-                                                            reason=f"User ranked up (EXP = {user_exp[0] + 1})")
+                await event.app.rest.add_role_to_member(guild=event.message.guild_id, user=author_id,
+                                                        role=level_table[user.exp + exp_per_message],
+                                                        reason=f"User ranked up (EXP = {user.exp + exp_per_message})")
 
-                    embed = hikari.Embed(title="Level up!", description="Way to go, you leveled up!")
-                    embed.set_author(name=event.author.username, icon=event.author.avatar_url)
+                embed = hikari.Embed(title="Level up!", description=f"Way to go, "
+                                                                    f"you leveled up to "
+                                                                    f"<@&{level_table[user.exp + exp_per_message]}>!")
+                embed.set_author(name=event.author.username, icon=event.author.avatar_url)
 
-                    await event.app.rest.create_message(channel=event.channel_id, embed=embed)
-                return
+                await event.app.rest.create_message(channel=event.channel_id, embed=embed)
 
         else:
             # If the user doesn't exist, add them to the table
-            client.model.add_user(author_id)
+            try:
+                client.model.add_user(author_id, author_name)
+                client.model.set_exp(author_id, exp_per_message)
+            except:
+                print(f"Failed to add {author_id} ({author_name}) to the database!")
 
 
 @bot.listen()
@@ -128,17 +129,62 @@ async def edit_log(event: hikari.MessageUpdateEvent):
 
             embed = hikari.Embed(
                 description=f"{author.mention} updated their message\n{message.make_link(message.guild_id)}",
-                timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")), color="#0000FF")
+                timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")), color="#FFFF00")
 
             embed.set_author(name=f"{author.username}#{author.discriminator}", icon=author.avatar_url)
 
             embed.add_field(name="Before the Edit:", value=before_content)
             embed.add_field(name="After the Edit:", value=after_content)
             embed.add_field(name="When:",
-                            value=f"<t:{event.old_message.timestamp.astimezone(pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+                            value=f"<t:{event.old_message.timestamp.astimezone(tz=pytz.timezone('America/Chicago')).strftime('%s')}:F>")
             embed.add_field(name="ID", value=f"```\nUser: {author.id}\nMessage: {message.id}```")
 
             await bot.rest.create_message(channel=mod_log, embed=embed)
+
+
+@bot.listen()
+async def join_log(event: hikari.events.MemberCreateEvent):
+    if not event.user.is_bot:
+        user = event.user
+        embed = hikari.Embed(title=f"{user.username}", description=f"{user.mention} joined the server",
+                             color="#00FF00", timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")))
+
+        embed.add_field(name="**ID**", value=f"```\nUser: {user.id}```")
+
+        embed.add_field(name="When:",
+                        value=f"<t:{datetime.datetime.now(tz=pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+
+        await client.app.rest.create_message(channel=mod_log, embed=embed)
+
+
+@bot.listen()
+async def leave_log(event: hikari.events.MemberDeleteEvent):
+    if not event.user.is_bot:
+        user = event.user
+        embed = hikari.Embed(title=f"{user.username}", description=f"{user.mention} left the server",
+                             color="#FFFFFF", timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")))
+
+        embed.add_field(name="**ID**", value=f"```\nUser: {user.id}```")
+
+        embed.add_field(name="When:",
+                        value=f"<t:{datetime.datetime.now(tz=pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+
+        await client.app.rest.create_message(channel=mod_log, embed=embed)
+
+
+@bot.listen()
+async def ban_log(event: hikari.events.BanEvent):
+    if not event.user.is_bot:
+        banned_user = event.user
+        embed = hikari.Embed(title=f"{banned_user.username}", description=f"{banned_user.mention} was banned",
+                             color="#FFFFFF", timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")))
+
+        embed.add_field(name="**ID**", value=f"```\nUser: {banned_user.id}```")
+
+        embed.add_field(name="When:",
+                        value=f"<t:{datetime.datetime.now(tz=pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+
+        await client.app.rest.create_message(channel=mod_log, embed=embed)
 
 
 @bot.listen()
