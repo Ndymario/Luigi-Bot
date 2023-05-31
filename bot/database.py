@@ -24,6 +24,7 @@ class Database:
         self.client = PocketBase("https://" + os.getenv("DATABASE_URL"))
         self.max_level = 6
         self.max_exp = 50000
+        self.exp_multiplier = 1
 
         self.level_table = level_table = {0: ("(No Rank)", range(0, 30)), 1: ("Super Mushroom", range(30, 490)),
                                           2: ("Fire Flower", range(490, 2130)), 3: ("Blue Shell", range(2130, 6860)),

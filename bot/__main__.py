@@ -17,7 +17,7 @@ client.plugins.load_folder("bot.plugins")
 
 # If you're using the bot for yourself, you'll need to edit these ID's to match your channel IDs
 starboard = 908854613111877652
-mod_log = 796089340433793044
+mod_log = 725412558596604010
 member_count = 638461996207177760
 guild_id = 399424476259024897
 
@@ -58,7 +58,10 @@ async def starboard(event: hikari.ReactionAddEvent):
 
 @bot.listen()
 async def exp(event: hikari.MessageCreateEvent):
-    exp_per_message = 2
+    exp_per_message = client.model.exp_multiplier
+
+    if bot.get_me().id == 1091516626274365502:
+        exp_per_message = 0
 
     if event.is_human:
         author_id = event.author.id
@@ -87,8 +90,11 @@ async def exp(event: hikari.MessageCreateEvent):
 
         else:
             # If the user doesn't exist, add them to the table
-            client.model.add_user(author_id, author_name)
-            client.model.set_exp(author_id, exp_per_message)
+            try:
+                client.model.add_user(author_id, author_name)
+                client.model.set_exp(author_id, exp_per_message)
+            except:
+                print(f"Failed to add {author_id} ({author_name}) to the database!")
 
 
 @bot.listen()
@@ -123,17 +129,62 @@ async def edit_log(event: hikari.MessageUpdateEvent):
 
             embed = hikari.Embed(
                 description=f"{author.mention} updated their message\n{message.make_link(message.guild_id)}",
-                timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")), color="#0000FF")
+                timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")), color="#FFFF00")
 
             embed.set_author(name=f"{author.username}#{author.discriminator}", icon=author.avatar_url)
 
             embed.add_field(name="Before the Edit:", value=before_content)
             embed.add_field(name="After the Edit:", value=after_content)
             embed.add_field(name="When:",
-                            value=f"<t:{event.old_message.timestamp.astimezone(pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+                            value=f"<t:{event.old_message.timestamp.astimezone(tz=pytz.timezone('America/Chicago')).strftime('%s')}:F>")
             embed.add_field(name="ID", value=f"```\nUser: {author.id}\nMessage: {message.id}```")
 
             await bot.rest.create_message(channel=mod_log, embed=embed)
+
+
+@bot.listen()
+async def join_log(event: hikari.events.MemberCreateEvent):
+    if not event.user.is_bot:
+        user = event.user
+        embed = hikari.Embed(title=f"{user.username}", description=f"{user.mention} joined the server",
+                             color="#00FF00", timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")))
+
+        embed.add_field(name="**ID**", value=f"```\nUser: {user.id}```")
+
+        embed.add_field(name="When:",
+                        value=f"<t:{datetime.datetime.now(tz=pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+
+        await client.app.rest.create_message(channel=mod_log, embed=embed)
+
+
+@bot.listen()
+async def leave_log(event: hikari.events.MemberDeleteEvent):
+    if not event.user.is_bot:
+        user = event.user
+        embed = hikari.Embed(title=f"{user.username}", description=f"{user.mention} left the server",
+                             color="#FFFFFF", timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")))
+
+        embed.add_field(name="**ID**", value=f"```\nUser: {user.id}```")
+
+        embed.add_field(name="When:",
+                        value=f"<t:{datetime.datetime.now(tz=pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+
+        await client.app.rest.create_message(channel=mod_log, embed=embed)
+
+
+@bot.listen()
+async def ban_log(event: hikari.events.BanEvent):
+    if not event.user.is_bot:
+        banned_user = event.user
+        embed = hikari.Embed(title=f"{banned_user.username}", description=f"{banned_user.mention} was banned",
+                             color="#FFFFFF", timestamp=datetime.datetime.now(tz=pytz.timezone("America/Chicago")))
+
+        embed.add_field(name="**ID**", value=f"```\nUser: {banned_user.id}```")
+
+        embed.add_field(name="When:",
+                        value=f"<t:{datetime.datetime.now(tz=pytz.timezone('America/Chicago')).strftime('%s')}:F>")
+
+        await client.app.rest.create_message(channel=mod_log, embed=embed)
 
 
 @bot.listen()

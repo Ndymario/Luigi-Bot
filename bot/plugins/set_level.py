@@ -1,4 +1,3 @@
-import typing
 from bot.database import Database
 import crescent
 import hikari
