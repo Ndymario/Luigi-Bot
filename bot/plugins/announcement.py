@@ -30,7 +30,8 @@ class ModalView(miru.View):
     title = None
     message = None
 
-    @miru.channel_select(channel_types=[hikari.ChannelType.GUILD_TEXT, hikari.ChannelType.GUILD_NEWS], placeholder="Channel to send the message to",
+    @miru.channel_select(channel_types=[hikari.ChannelType.GUILD_TEXT, hikari.ChannelType.GUILD_NEWS],
+                         placeholder="Channel to send the message to",
                          max_values=1)
     async def channel_select(self, select: miru.TextSelect, ctx: miru.ViewContext):
         self.channel = select.values[0]
@@ -68,14 +69,14 @@ class SayCommand:
         embed = hikari.Embed(title=f"So, you want to make an announcement?",
                              description=f"Pick a channel you want to make the announcement in and let's go!"
                                          f" (You'll be presented with a Modal to make the announcement)",
-                             color="#2f3136")
+                             color="#2b2d31")
         view = ModalView(timeout=None)
 
         message = await ctx.respond(components=view, ensure_message=True, embed=embed, ephemeral=True)
         await view.start(message)
         await view.wait()
 
-        embed = hikari.Embed(title=f"{view.title}", description=f"{view.message}")
+        embed = hikari.Embed(title=f"{view.title}", description=f"{view.message}", color="#2b2d31")
 
         if not self.anonymous:
             embed.set_footer(text=f"Author: {ctx.user.username}", icon=ctx.user.avatar_url)

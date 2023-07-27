@@ -17,7 +17,7 @@ class WelcomeView(miru.View):
             cur_rule += 1
             with open(f"./bot/plugins/rules/{cur_rule}.txt", "r") as rule_txt:
                 rules.append(hikari.Embed(title=f"{rule_txt.readline()}", description=f"{rule_txt.readline()}",
-                                          color="#2f3136"))
+                                          color="#2b2d31"))
         navigator = nav.NavigatorView(pages=rules)
         await navigator.send(to=ctx.interaction, ephemeral=True)
 
@@ -38,27 +38,27 @@ class WelcomeView(miru.View):
         with open("./bot/plugins/roles/levels.txt", "r") as roles_txt:
             level_txt = roles_txt.read()
 
-        admin = hikari.Embed(title=f"**__Administrative Roles__**", description=f"{admin_txt}", color="#1E92F4")
+        admin = hikari.Embed(title=f"**__Administrative Roles__**", description=f"{admin_txt}", color="#2b2d31")
         admin.set_footer("Administrative roles are earned through trust, "
                          "and as such asking for them will only lower your chances of getting them.")
 
-        identity = hikari.Embed(title=f"**__Identity Roles__**", description=f"{identity_txt}", color="#1E92F4")
+        identity = hikari.Embed(title=f"**__Identity Roles__**", description=f"{identity_txt}", color="#2b2d31")
         identity.set_footer("Proof may be requested for acquiring the modding roles.")
 
-        mention = hikari.Embed(title=f"**__Mention Roles__**", description=f"{ping_txt}", color="#1E92F4")
+        mention = hikari.Embed(title=f"**__Mention Roles__**", description=f"{ping_txt}", color="#2b2d31")
         mention.set_footer("These roles are self-assigned.")
 
-        misc = hikari.Embed(title=f"**__Miscellaneous Roles__**", description=f"{misc_txt}", color="#1E92F4")
+        misc = hikari.Embed(title=f"**__Miscellaneous Roles__**", description=f"{misc_txt}", color="#2b2d31")
         misc.set_footer("These roles are not given out.")
 
-        misc = hikari.Embed(title=f"**__Level Roles__**", description=f"{level_txt}", color="#1E92F4")
+        misc = hikari.Embed(title=f"**__Level Roles__**", description=f"{level_txt}", color="#2b2d31")
         misc.set_footer("You can earn these by talking in chat. The EXP requirement is hidden until at least one person"
                         " has the role for some fun!")
 
         navigator = nav.NavigatorView(pages=[admin, identity, mention, misc])
         await navigator.send(to=ctx.interaction, ephemeral=True)
 
-    @miru.text_select(placeholder="Optionally, assign yourself some mention roles!", min_values=0, max_values=4,
+    @miru.text_select(placeholder="Optionally, assign yourself some mention roles!", min_values=0, max_values=5,
                       options=[
                           miru.SelectOption(label="Server Pings", emoji="📣",
                                             description="Receive a ping for *any* announcement"),
@@ -95,22 +95,20 @@ class WelcomeView(miru.View):
 @plugin.include
 @crescent.command(name="welcome", description="Creates the welcome message")
 async def welcome(ctx: crescent.Context):
-    embed = hikari.Embed(title=f"Welcome!",
-                         description=f"Welcome to the central location for all things New Super Mario Bros. DS!",
-                         color="#1E92F4")
-
-    embed.add_field(name="Join the community",
-                    value="Introduce yourself in <#751831145225912481>, then say hello in <#399424476728655893>!")
-
-    embed.add_field(name="Discuss NSMB DS Modding",
-                    value="If you need help on your project, or just want to talk about modifying the game, "
-                          "check out the NSMB DS Modding Category.")
-
-    embed.add_field(name="Invite some friends",
-                    value="Here's an invite link that will never expire:\nhttps://discord.gg/x7gr3M9")
+    content = "# Welcome!" \
+            "\nWelcome to the central location for all things New Super Mario Bros. DS!" \
+            "\n## Join the community" \
+            "\n- Introduce yourself in <#751831145225912481>" \
+            "\n- Say hello in <#399424476728655893>" \
+            "\n## NSMB DS Modding" \
+            "\nIf you need help on your project, or just want to talk about modifying the game, " \
+            "check out the NSMB DS Modding Category." \
+            "\n## Invite some friends" \
+            "\nHere's an invite link that will never expire:" \
+            "\nhttps://discord.gg/x7gr3M9"
 
     view = WelcomeView(timeout=None)
 
     await ctx.respond(ephemeral=True, content="Done.")
-    message = await ctx.app.rest.create_message(channel=ctx.channel.id, components=view, embed=embed)
+    message = await ctx.app.rest.create_message(content=content, channel=ctx.channel.id, components=view)
     await view.start(message)

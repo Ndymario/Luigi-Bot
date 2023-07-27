@@ -18,9 +18,9 @@ async def leaderboard(ctx: crescent.Context):
     embed = hikari.Embed(title="Here are current server stats!")
 
     for user in lb:
-        text_form += f"{user.collection_id['username']}: " \
-                     f"**{plugin.model.level_table[user.collection_id['level']][0]}** " \
-                     f"`{user.collection_id['exp']}`\n"
+        text_form += f"{user.username}: " \
+                     f"**{plugin.model.level_table[user.level][0]}** " \
+                     f"`{user.exp}`\n"
 
     embed.add_field(name="Rankings", value=text_form)
     embed.set_footer(text="These are the top 10 users in the server")

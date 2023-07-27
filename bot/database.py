@@ -21,25 +21,25 @@ class User:
 # Class to represent our DB connection
 class Database:
     def __init__(self):
-        self.client = PocketBase("https://" + os.getenv("DATABASE_URL"))
+        self.client = PocketBase("http://" + os.getenv("DATABASE_URL") + ":8090")
         self.max_level = 6
         self.max_exp = 50000
         self.exp_multiplier = 1
 
-        self.level_table = level_table = {0: ("(No Rank)", range(0, 30)), 1: ("Super Mushroom", range(30, 490)),
-                                          2: ("Fire Flower", range(490, 2130)), 3: ("Blue Shell", range(2130, 6860)),
-                                          4: ("Super Star", range(6860, 22500)), 5: ("Big Star", range(22500, 50000)),
-                                          6: ("Mega Mushroom", range(500001, 999999999999999999))}
+        self.level_table = {0: ("(No Rank)", range(0, 30)), 1: ("Super Mushroom", range(30, 490)),
+                            2: ("Fire Flower", range(490, 2130)), 3: ("Blue Shell", range(2130, 6860)),
+                            4: ("Super Star", range(6860, 22500)), 5: ("Big Star", range(22500, 50000)),
+                            6: ("Mega Mushroom", range(500001, 999999999999999999))}
 
     def _get_pb_user(self, user_id: int):
         try:
             record = self.client.collection("users").get_list(1, 1, {"filter": f"user_id = {user_id}"}).items[0]
 
             user = User()
-            user.id = record.collection_id["id"]
-            user.exp = record.collection_id["exp"]
-            user.level = record.collection_id["level"]
-            user.birthday = record.collection_id["birthday"]
+            user.id = record.id
+            user.exp = record.exp
+            user.level = record.level
+            user.birthday = record.birthday
 
             return user
 
@@ -61,17 +61,17 @@ class Database:
 
         return user
 
-    def add_user(self, user_id: int, username: str):
+    def add_user(self, user_id: int, username: str, exp: int = 0, level: int = 0, birthday=None):
         # Prevent duplicate user entries
-        if self._get_pb_user(user_id) is not None:
-            raise ValueError(f"This user (id = {user_id}) already exists in the database!")
+        # if self._get_pb_user(user_id) is not None:
+        #     raise ValueError(f"This user (id = {user_id}) already exists in the database!")
 
         self.client.collection("users").create({
             "user_id": user_id,
             "username": username,
-            "exp": 0,
-            "level": 0,
-            "birthday": None
+            "exp": exp,
+            "level": level,
+            "birthday": birthday
         })
 
     def get_exp(self, user_id: int):
@@ -126,3 +126,5 @@ class Database:
 
 if __name__ == "__main__":
     db = Database()
+
+    print(db.get_user(306270307101179915))

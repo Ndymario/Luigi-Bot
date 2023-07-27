@@ -20,5 +20,4 @@ typing_extensions==4.4.0
 urllib3==1.26.14
 yarg==0.1.9
 yarl==1.8.2
-
-pocketbase~=0.8.1
+pocketbase~=0.9.1

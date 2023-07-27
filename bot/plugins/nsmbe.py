@@ -17,7 +17,6 @@ async def about(ctx: crescent.Context):
         text = about_txt.read()
 
     embed = hikari.Embed(title=f"About NSMBe", description=f"{text}", color="#1E92F4")
-    embed.set_footer("Note: The NSMBe downloads on NSMB HD are no longer maintained")
 
     view = miru.View()
     view.add_item(UrlButton("Download NSMBe", "https://github.com/MammaMiaTeam/NSMB-Editor/releases"))
