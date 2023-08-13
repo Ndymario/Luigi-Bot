@@ -89,7 +89,9 @@ async def exp(event: hikari.MessageCreateEvent):
                                                                     f"<@&{level_table[user.exp + exp_per_message]}>!")
                 embed.set_author(name=event.author.username, icon=event.author.avatar_url)
 
-                await event.app.rest.create_message(channel=event.channel_id, embed=embed)
+                # If the user has opted out of seeing level up messages, don't send the message
+                if not client.model.get_lvl_announce_preference():
+                    await event.app.rest.create_message(channel=event.channel_id, embed=embed)
 
         else:
             # If the user doesn't exist, add them to the table

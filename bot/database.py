@@ -13,9 +13,11 @@ class User:
     exp = int
     level = int
     birthday = datetime
+    hide_lvl_up = bool
 
     def __str__(self):
-        return f"ID: {self.id}\nEXP: {self.exp}\nLVL: {self.level}\nBirthday: {self.birthday}"
+        return f"ID: {self.id}\nEXP: {self.exp}\nLVL: {self.level}\nBirthday: {self.birthday}\n" \
+               f"Hide Lvl Up: {self.hide_lvl_up}"
 
 
 # Class to represent our DB connection
@@ -40,6 +42,7 @@ class Database:
             user.exp = record.exp
             user.level = record.level
             user.birthday = record.birthday
+            user.hide_lvl_up = record.hide_lvl_up
 
             return user
 
@@ -71,7 +74,8 @@ class Database:
             "username": username,
             "exp": exp,
             "level": level,
-            "birthday": birthday
+            "birthday": birthday,
+            "hide_lvl_up": False
         })
 
     def get_exp(self, user_id: int):
@@ -122,6 +126,21 @@ class Database:
             return None
 
         self.client.collection("users").update(str(user.id), {"birthday": str(date)})
+
+    def get_lvl_announce_preference(self, user_id: int):
+        user = self._get_pb_user(user_id)
+
+        if user is None:
+            return None
+
+        return user.hide_lvl_up
+
+    def set_lvl_announce_preference(self, user_id: int, preference: bool):
+        user = self._get_pb_user(user_id)
+        if user is None:
+            return None
+
+        self.client.collection("users").update(str(user.id), {"hide_lvl_up": preference})
 
 
 if __name__ == "__main__":
